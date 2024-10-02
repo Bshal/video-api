@@ -44,6 +44,9 @@
 		"supertest": "^7.0.0",
 		"swagger-ui-express": "^5.0.1"
 	},
+	"engines": {
+		"node": ">=14.x"
+	},
 	"_moduleAliases": {
 		"src": "src"
 	}

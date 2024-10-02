@@ -3,6 +3,7 @@ const express = require('express')
 const helmet = require('helmet')
 const xss = require('xss-clean')
 const cors = require('cors')
+const createError = require('http-errors')
 
 const auth = require('./middlewares/auth')
 const routes = require('./routes')

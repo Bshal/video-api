@@ -3,16 +3,20 @@ const httpStatus = require('http-status')
 const errorHandler = (err, req, res, next) => {
 	let { statusCode, message } = err
 
-	console.log('from error.js')
-	console.log(statusCode, message)
-
-	const response = {
-		code: statusCode || httpStatus.INTERNAL_SERVER_ERROR,
-		message,
-		...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+	// Handle Multer file size limit error
+	if (err.code === 'LIMIT_FILE_SIZE') {
+		statusCode = httpStatus.BAD_REQUEST
+		message = 'File size exceeds limit'
 	}
 
-	res.status(response?.code || httpStatus.INTERNAL_SERVER_ERROR).send(response)
+	const response = {
+		statusCode: statusCode || httpStatus.INTERNAL_SERVER_ERROR,
+		message,
+	}
+
+	res
+		.status(response?.statusCode || httpStatus.INTERNAL_SERVER_ERROR)
+		.send(response)
 }
 
 module.exports = errorHandler

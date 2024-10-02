@@ -2,17 +2,6 @@
 
 This repository contains a video API that allows for uploading, trimming, merging, and sharing videos. The API is built using Node.js, Express, and Sequelize, and it includes end-to-end tests.
 
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Setup](#setup)
-- [Running the API Server](#running-the-api-server)
-- [Running the Test Suite](#running-the-test-suite)
-- [Project Structure](#project-structure)
-- [API Endpoints](#api-endpoints)
-- [Environment Variables](#environment-variables)
-- [License](#license)
-
 ## Prerequisites
 
 - Node.js (version 14.x or higher)
@@ -23,7 +12,7 @@ This repository contains a video API that allows for uploading, trimming, mergin
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/video-api.git
+    git clone https://github.com/bshal/video-api.git
     cd video-api
     ```
 
@@ -52,41 +41,50 @@ This repository contains a video API that allows for uploading, trimming, mergin
 
 ## Running the API Server
 
-To start the API server, run:
+To start the API server in development mode, run:
 
 ```sh
-npm start
+npm run dev
 ```
 
 This will start the server on the port specified in the `.env` file (default is 3000).
 
 ## Running the Test Suite
 
-The project includes end-to-end tests using Jest. To run the tests, use the following command:
+The project includes both end-to-end (E2E) and unit tests using Jest. To run the tests, use the following commands:
 
+## API Endpoints
+
+### End-to-End Tests
+
+- **Run all end-to-end tests:**
 ```sh
 npm run test:e2e
 ```
 
-You can also run specific test scripts defined in the `package.json` file:
+- **Run specific end-to-end test scripts:**
 
-- End-to-end tests for video features:
+End-to-end tests for video features:
+```sh
+npm run test:video
+```
 
-    ```sh
-    npm run test:video
-    ```
+End-to-end tests for share features:
+```sh
+npm run test:share
+```
 
-- End-to-end tests for share features:
+### Unit Tests
 
-    ```sh
-    npm run test:share
-    ```
+- **Run unit tests for share routes:**
+```sh
+npm run test:unit:routes:share
+```
 
-- All end-to-end tests:
-
-    ```sh
-    npm run test:e2e
-    ```
+- **Run unit tests for video routes:**
+```sh
+npm run test:unit:routes:video
+```
 
 ## Project Structure
 
@@ -98,7 +96,7 @@ You can also run specific test scripts defined in the `package.json` file:
 - `src/middlewares/`: Custom middleware functions.
 - `src/models/`: Sequelize models for the database.
 - `src/routes/`: Defines the API routes.
-- `src/tests/`: Contains end-to-end tests.
+- `src/tests/`: Contains end-to-end and unittests.
 
 ## API Endpoints
 
@@ -117,6 +115,12 @@ You can also run specific test scripts defined in the `package.json` file:
   - **Authorization:** Bearer token required.
   - **Request:** JSON with `startTime` and `endTime`.
   - **Response:** Trimmed video metadata.
+
+  - **POST /api/videos/merge**
+  - Merge multiple videos.
+  - Authorization: Bearer token required.
+  - Body: JSON with `videoIds` array.
+  - Response: Merged video metadata.
 
 ### Share Endpoints
 
@@ -144,8 +148,4 @@ The following environment variables are used in the project:
 - `API_TOKEN`: The token used for API authentication.
 - `MIN_DURATION`: The minimum duration for uploaded videos (in seconds).
 - `MAX_DURATION`: The maximum duration for uploaded videos (in seconds).
-- `MAX_FILE_SIZE`: The maximum file size for uploaded videos (e.g., `50MB`).
-
-## License
-
-This project is licensed under the MIT License.
+- `MAX_FILE_SIZE`: The maximum file size for uploaded videos (e.g., `25MB`).

@@ -9,6 +9,10 @@ const { getVideoDuration } = require('../utils/video')
 const sendResponse = require('../utils/dataResponse')
 const db = require('../models')
 
+/**
+ * Uploads a video, validates its duration, renames it to .mp4, and saves metadata to the database.
+ * Responds with the video metadata if successful, or an error message if the duration is out of bounds.
+ */
 exports.uploadVideo = catchAsync(async (req, res) => {
 	let video
 	let newFilePath
@@ -61,6 +65,10 @@ exports.uploadVideo = catchAsync(async (req, res) => {
 	}
 })
 
+/**
+ * Trims a video based on provided startTime and endTime, and saves the trimmed video metadata to the database.
+ * Responds with the trimmed video metadata if successful, or an error message if the input is invalid.
+ */
 exports.trimVideo = catchAsync(async (req, res) => {
 	const videoId = req.params.id
 
@@ -147,6 +155,10 @@ exports.trimVideo = catchAsync(async (req, res) => {
 		.run()
 })
 
+/**
+ * Merges multiple videos into one, ensuring all videos exist and are valid.
+ * Responds with the merged video metadata if successful, or an error message if any input is invalid.
+ */
 exports.mergeVideos = catchAsync(async (req, res, next) => {
 	const { videoIds } = req.body
 

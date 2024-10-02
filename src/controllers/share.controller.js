@@ -52,4 +52,56 @@ exports.createShareLink = catchAsync(async (req, res) => {
 	)
 })
 
-exports.accessSharedVideo = catchAsync(async (req, res) => {})
+exports.accessSharedVideo = catchAsync(async (req, res) => {
+	const { shareToken } = req.params
+
+	if (!shareToken || shareToken.trim() === '' || shareToken === ':shareToken') {
+		return res
+			.status(httpStatus.BAD_REQUEST)
+			.json(
+				sendResponse(httpStatus.BAD_REQUEST, null, 'Share token is required')
+			)
+	}
+
+	const sharedLink = await db.SharedLink.findOne({ where: { shareToken } })
+	if (!sharedLink) {
+		return res
+			.status(httpStatus.NOT_FOUND)
+			.json(sendResponse(httpStatus.NOT_FOUND, null, 'Link not found'))
+	}
+
+	if (new Date() > sharedLink.expiresAt) {
+		return res
+			.status(httpStatus.GONE)
+			.json(sendResponse(httpStatus.GONE, null, 'Link expired'))
+	}
+
+	const video = await db.Video.findByPk(sharedLink.videoId)
+	if (!video) {
+		return res
+			.status(httpStatus.NOT_FOUND)
+			.json(sendResponse(httpStatus.NOT_FOUND, null, 'Video not found'))
+	}
+
+	if (!video.filePath) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.json(
+				sendResponse(
+					httpStatus.INTERNAL_SERVER_ERROR,
+					null,
+					'Video file path is missing'
+				)
+			)
+	}
+
+	// Set content type and headers for the video response
+	res.setHeader('Content-Type', 'video/mp4')
+	res.setHeader('Content-Disposition', `inline; filename="${video.title}.mp4"`)
+
+	res.sendFile(path.resolve(video.filePath), (err) => {
+		if (err) {
+			next(err)
+		}
+	})
+})

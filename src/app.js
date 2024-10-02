@@ -1,3 +1,4 @@
+require('module-alias/register')
 require('dotenv').config()
 const express = require('express')
 const helmet = require('helmet')
@@ -8,6 +9,7 @@ const createError = require('http-errors')
 const auth = require('./middlewares/auth')
 const routes = require('./routes')
 const errorHandler = require('./middlewares/error')
+const { swaggerUi, specs } = require('./config/swagger');
 
 // Initialize app
 const app = express()
@@ -19,6 +21,24 @@ app.use(cors())
 
 // Body Parser Middleware with JSON limit
 app.use(express.json({ limit: '10kb' }))
+
+// Swagger Docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+	swaggerOptions: {
+		authAction: {
+			bearerAuth: {
+				name: "bearerAuth",
+				schema: {
+					type: "http",
+					in: "header",
+					name: "Authorization",
+					description: "",
+				},
+				value: process.env.API_TOKEN
+			}
+		}
+	}
+}));
 
 // Apply authentication middleware to all routes below
 app.use(auth)

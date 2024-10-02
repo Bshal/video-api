@@ -32,7 +32,7 @@ This repository contains a video API that allows for uploading, trimming, mergin
     API_TOKEN=your_api_token
     MIN_DURATION=5
     MAX_DURATION=25
-    MAX_FILE_SIZE=25
+    MAX_FILE_SIZE=25mb
     ```
 
 4. Set up the database:

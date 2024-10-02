@@ -10,7 +10,7 @@
 		"test:e2e": "jest src/tests/e2e",
 		"test:unit": "jest src/tests/unit",
 		"test:unit:routes:share": "jest src/tests/unit/routes/share.route.test.js",
-		"test:unit:routes:video": "jest src/tests/unit/routes/video.route.test.js",
+		"test:unit:routes:video": "jest src/tests/unit/routes/video.route.test.js"
 	},
 	"keywords": [],
 	"author": "",

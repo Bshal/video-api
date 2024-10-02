@@ -1,6 +1,6 @@
 # Video API
 
-This repository contains a video API that allows for uploading, trimming, merging, and sharing videos. The API is built using Node.js, Express, and Sequelize, and it includes end-to-end tests.
+This repository contains a video API that allows for uploading, trimming, merging, and sharing videos. The API is built using Node.js, Express, and Sequelize, and it includes unit and end-to-end tests.
 
 ## Prerequisites
 
@@ -54,6 +54,10 @@ This will start the server on the port specified in the `.env` file (default is 
 The project includes both end-to-end (E2E) and unit tests using Jest. To run the tests, use the following commands:
 
 ## API Endpoints
+
+### Videos for Manual Testing
+
+For manually testing the video functionality, test videos can be found at `./src/tests/e2e/test_videos`.
 
 ### End-to-End Tests
 
@@ -116,11 +120,12 @@ npm run test:unit:routes:video
   - **Request:** JSON with `startTime` and `endTime`.
   - **Response:** Trimmed video metadata.
 
-  - **POST /api/videos/merge**
-  - Merge multiple videos.
-  - Authorization: Bearer token required.
-  - Body: JSON with `videoIds` array.
-  - Response: Merged video metadata.
+- **Merge Videos**
+  - **URL:** `POST /api/videos/merge`
+  - **Description:** Merge multiple videos.
+  - **Authorization:** Bearer token required.
+  - **Request:** JSON with `videoIds` array.
+  - **Response:** Merged video metadata.
 
 ### Share Endpoints
 

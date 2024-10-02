@@ -147,6 +147,129 @@ exports.trimVideo = catchAsync(async (req, res) => {
 		.run()
 })
 
-exports.mergeVideos = catchAsync(async (req, res) => {
-	res.send('Video merged successfully')
+exports.mergeVideos = catchAsync(async (req, res, next) => {
+	const { videoIds } = req.body
+
+	// Input validation
+	if (!Array.isArray(videoIds) || videoIds.length === 0) {
+		return res
+			.status(httpStatus.BAD_REQUEST)
+			.json(
+				sendResponse(
+					httpStatus.BAD_REQUEST,
+					null,
+					'videoIds must be a non-empty array'
+				)
+			)
+	}
+
+	// Convert IDs to integers and validate
+	const videoIdsInt = videoIds.map((id) => parseInt(id, 10))
+	if (videoIdsInt.some(isNaN)) {
+		return res
+			.status(httpStatus.BAD_REQUEST)
+			.json(
+				sendResponse(
+					httpStatus.BAD_REQUEST,
+					null,
+					'All videoIds must be valid integers'
+				)
+			)
+	}
+
+	// Fetch videos from the database
+	const videos = await db.Video.findAll({
+		where: { id: videoIdsInt },
+	})
+
+	if (videos.length !== videoIdsInt.length) {
+		return res
+			.status(httpStatus.NOT_FOUND)
+			.json(
+				sendResponse(httpStatus.NOT_FOUND, null, 'One or more videos not found')
+			)
+	}
+
+	// Verify that video files exist on disk
+	for (const video of videos) {
+		await fs.promises.access(video.filePath).catch(() => {
+			return res
+				.status(httpStatus.NOT_FOUND)
+				.json(
+					sendResponse(
+						httpStatus.NOT_FOUND,
+						null,
+						`Video file not found: ${video.fileName}`
+					)
+				)
+		})
+	}
+
+	// Generate unique output filename
+	const uuid = uuidv4()
+	const uploadsDir = path.resolve(__dirname, '..', '..', 'uploads')
+	const outputPath = path.join(uploadsDir, `merged_${uuid}.mp4`)
+
+	// Prepare FFmpeg command using the concat filter
+	let ffmpegCommand = ffmpeg()
+
+	// Add each video as an input
+	videos.forEach((video) => {
+		ffmpegCommand = ffmpegCommand.input(video.filePath)
+	})
+
+	// Build the complex filter for concatenation and scaling
+	let filterComplex = ''
+	for (let i = 0; i < videos.length; i++) {
+		filterComplex += `[${i}:v:0]scale=iw*min(1280/iw\\,720/ih):ih*min(1280/iw\\,720/ih),pad=1280:720:(1280-iw*min(1280/iw\\,720/ih))/2:(720-ih*min(1280/iw\\,720/ih))/2,setsar=1[v${i}];[${i}:a:0]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[a${i}];`
+	}
+	filterComplex +=
+		videos.map((_, i) => `[v${i}][a${i}]`).join('') +
+		`concat=n=${videos.length}:v=1:a=1[outv][outa]`
+
+	ffmpegCommand
+		.complexFilter([filterComplex])
+		.outputOptions([
+			'-map',
+			'[outv]',
+			'-map',
+			'[outa]',
+			'-c:v',
+			'libx264', // Video codec
+			'-c:a',
+			'aac', // Audio codec
+			'-b:a',
+			'128k', // Audio bitrate
+			'-ac',
+			'2', // Audio channels
+			'-ar',
+			'44100', // Audio sample rate
+			'-r',
+			'30', // Frame rate
+			'-pix_fmt',
+			'yuv420p', // Pixel format
+		])
+		.on('error', next)
+		.on('end', async () => {
+			const newDuration = await getVideoDuration(outputPath)
+			const { size } = await fs.promises.stat(outputPath)
+
+			const mergedVideo = await db.Video.create({
+				fileName: path.basename(outputPath),
+				filePath: outputPath,
+				size: size,
+				duration: newDuration,
+			})
+
+			return res
+				.status(httpStatus.CREATED)
+				.json(
+					sendResponse(
+						httpStatus.CREATED,
+						mergedVideo,
+						'Videos merged successfully!'
+					)
+				)
+		})
+		.save(outputPath)
 })
